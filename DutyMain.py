@@ -13,7 +13,7 @@ if __name__ == '__main__':
     (dFhs, dAcc) = DutyGetData(fnRaw)
     if(~dFhs):
         print('Nonexistent or empty file.')
-        return
+        SystemExit(0)
     end
     print('Accelation data has been seperated from fhs data.')
 
