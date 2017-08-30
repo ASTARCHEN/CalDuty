@@ -3,6 +3,17 @@
 
 import numpy as np
 
+
+# DutydFhsDecode: Decode fhs data
+# dRaw: fhs data with coding form
+# dFhs: fhs data with decoding form
+def DutyFhsDecode(dRaw):
+    lenRaw = len(dRaw)
+    dFhs = np.zeros(lenRaw, dtype = np.short)
+    for i in range(lenRaw):
+        dFhs[i] = dRaw[i] - 2048
+    return dFhs
+
 # DutyAccerationDecode: Decode acceration data
 # dRaw: acceration data with coding form
 # dAcc: acceration data with decoding form
@@ -47,7 +58,8 @@ def DutyGetData(fnRaw):
                 if curEnd >= lenRaw:    # EXCEPTION: not a complete packet
                     break
                 cntFhs += 1
-                dFhs = np.hstack([dFhs, dRaw[curStart:curEnd]])
+                tmpFhs = DutyFhsDecode(dRaw[curStart:curEnd])
+                dFhs = np.hstack([dFhs, tmpFhs])
                 curStart = curEnd+1
             else:                       # acceration data
                 cntLen = fsAcc
