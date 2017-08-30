@@ -6,34 +6,33 @@ import numpy as np
 
 # DutydFhsDecode: Decode fhs data
 # dRaw: fhs data with coding form
-# dFhs: fhs data with decoding form
+# (return): fhs data with decoding form
 def DutyFhsDecode(dRaw):
     lenRaw = len(dRaw)
-    dFhs = np.zeros(lenRaw, dtype = np.short)
     for i in range(lenRaw):
-        dFhs[i] = dRaw[i] - 2048
-    return dFhs
+        dRaw[i] = dRaw[i] - 2048
+    return dRaw
 
 # DutyAccerationDecode: Decode acceration data
 # dRaw: acceration data with coding form
-# dAcc: acceration data with decoding form
+# (return): acceration data with decoding form
 def DutyAccerationDecode(dRaw):
     lenRaw = len(dRaw)
-    dAcc = np.zeros(lenRaw, dtype = np.short)
     for i in range(lenRaw):
-        dAcc[i] = (dRaw[i] & 0x3FFF) - 2048
-    return dAcc
+        dRaw[i] = (dRaw[i] & 0x3FFF) - 2048
+    return dRaw
     
 
 # DutyGetData: Obtain fhs(Fetal heart signal) and acceration signal from the file of fnRaw
 # fnRaw: filename
 # dFhs: fhs signal, fs = 500Hz, 1 channel
 # dAcc: acceration signal, fs = 25Hz, 3 channels
+# cntLost: number of lost acceration packet
 def DutyGetData(fnRaw):
     import os
     fExist = os.path.exists(fnRaw)
-    dFhs = np.array([])
-    dAcc = np.array([])    
+    dFhs = np.array([], dtype=np.short)
+    dAcc = np.array([], dtype=np.short)    
     if(not fExist):
         return (dFhs, dAcc)
     else:
@@ -44,17 +43,16 @@ def DutyGetData(fnRaw):
         #print(lenRaw)
         curStart = 0    # the first index of the current access data
         while curStart < lenRaw:    # find the index of the first fhs data
-            if dRaw(curStart) < 10000:
+            if dRaw[curStart] < 10000:
                 break
             curStart += 1                
         curEnd = 0      # the last index of the current access data
         cntFhs = 0      # counter for fhs data
         cntAcc = 0      # counter for acceration data
         cntLost = 0     # counter for lost acceration data
-        while curStart >= lenRaw:
+        while curStart <= lenRaw:
             if dRaw[curStart] < 10000:  # fhs data
-                curLen = fsFhs
-                curEnd = curStart+curLen-1
+                curEnd = curStart+fsFhs
                 if curEnd >= lenRaw:    # EXCEPTION: not a complete packet
                     break
                 cntFhs += 1
@@ -62,19 +60,20 @@ def DutyGetData(fnRaw):
                 dFhs = np.hstack([dFhs, tmpFhs])
                 curStart = curEnd+1
             else:                       # acceration data
-                cntLen = fsAcc
-                curEnd = curStart+curLen-1
+                curEnd = curStart+fsAcc
                 if curEnd >= lenRaw:    # EXCEPTION: not a complete packet
                     break
                 cntAcc += 1
                 nLost = cntFhs - cntAcc
                 if nLost > 0:           # at least one acceration data packet lost 
-                    dAcc = np.hstack([dAcc, np.zeros(fsAcc*nLost, dtype=np.short)])     #fill 0
+                    dAcc = np.hstack([dAcc, np.zeros(fsAcc*nLost, dtype=np.short)])     #fill with 0
                     cntLost += nLost
                 tmpAcc = DutyAccerationDecode(dRaw[curStart:curEnd])
-                dAcc = np.vstack([dAcc, tmpAcc])
-        
+                dAcc = np.hstack([dAcc, tmpAcc])
+                cntAcc = cntFhs
+                curStart = curEnd  
         nLost = cntFhs - cntAcc     # duration of fhs data and that of acceration data should be the same 
         if nLost > 0:               # at least one acceration data packet lost 
-            dAcc = np.vstack([dAcc, np.zeros(fsAcc*nLost, dtype=np.short)])
+            dAcc = np.hstack([dAcc, np.zeros(fsAcc*nLost, dtype=np.short)])
             cntLost += nLost
+    return (dFhs, dAcc, cntLost)

@@ -7,15 +7,13 @@ from DutyData import *
 
 if __name__ == '__main__':
 
-    dFhs = []
-    dAcc = []
     fnRaw = './y00004.txt'
-    (dFhs, dAcc) = DutyGetData(fnRaw)
-    if(~dFhs):
+    (dFhs, dAcc, nLost) = DutyGetData(fnRaw)
+    t = len(dFhs)/500
+    if(t <= 0):
         print('Nonexistent or empty file.')
         SystemExit(0)
-    end
     print('Accelation data has been seperated from fhs data.')
-    printf(len(dFhs))
-    printf(len(dAcc))
+    print('The test lasted %ds' %(t))
+    print('%d accelation data packets lost' %(nLost))
 
