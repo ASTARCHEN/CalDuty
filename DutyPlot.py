@@ -4,7 +4,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# DutyPlotFhs: Decode fhs data
+# DutyPlotFhs: Plot fhs data
+# dFhr: fhs data
+def DutyPlotFhr(dFhr, idFig):
+    lenFhr = len(dFhr)
+    plt.figure(idFig)
+    plt.plot(dFhr)
+    plt.axis([0, lenFhr, 100, 200])
+    plt.title('fetal heart rate curve')
+    return
+
+
+# DutyPlotFhs: Plot fhs data
 # dFhs: fhs data
 def DutyPlotFhs(dFhs, idFig):
     lenFhs = len(dFhs)
@@ -15,7 +26,7 @@ def DutyPlotFhs(dFhs, idFig):
     plt.title('fetal heart signal')
     return
 
-# DutyPlotAcc: Decode acceleration data
+# DutyPlotAcc: Plot acceleration data
 # dAcc: acceleration data
 def DutyPlotAcc(dAcc, idFig):
     x = dAcc[0::3]
@@ -38,8 +49,9 @@ def DutyPlotAcc(dAcc, idFig):
     return
 
 
-def DutyPlotAll(dFhs, dAcc):
-    DutyPlotFhs(dFhs, 1)
-    DutyPlotAcc(dAcc, 2)
+def DutyPlotAll(dFhr, dFhs, dAcc):
+    DutyPlotFhr(dFhr, 1)
+    DutyPlotFhs(dFhs, 2)
+    DutyPlotAcc(dAcc, 3)
     plt.show()
     return

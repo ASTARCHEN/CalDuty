@@ -8,39 +8,47 @@ from DutyPlot import *
 
 if __name__ == '__main__':
 
-    fnRaw = './y00004.txt'
+    fnFhs = './y00005.txt'
+    fnFhr = './x00005.txt'
     # Decoding and relevant infomation
-    (dFhs, dAcc, accLost, fhsIncomplete, accIncomplete) = DutyDataDecode(fnRaw)
-    t = len(dFhs)/500
+    (dFhr, dFhs, dAcc, infoDec) = DutyDataDecode(fnFhs, fnFhr)
+    [fhsLost, accLost, fhsIncomplete, accIncomplete] = infoDec
+    t = dFhr.size
     if(t <= 0):
-        print('Nonexistent or empty file.')
+        print('Nonexistent or empty files.')
         SystemExit(0)
     print('Decoding done:')
     print('  The test lasted for %ds.' %(t))
+    if fhsLost > 1:
+        print('  %d fhs packages lost.' %(accLost))
+    elif fhsLost == 1:
+        print('  1 fhs package losts.')
+    else:
+        print('  No fhs packages lost.') 
     if fhsIncomplete > 1:
-        print('  %d fhs packets have been autocompleted.' %(fhsIncomplete))
+        print('  %d incomplete fhs packages have been set to 0.' %(fhsIncomplete))
     elif fhsIncomplete == 1:
-        print('  A fhs packet has been autocompleted.')
+        print('  1 incomplete fhs package has been set to 0.')
     else:
-        print('  All the fhs packets are complete.')    
+        print('  All the fhs packages are complete.')    
     if accLost > 1:
-        print('  %d acceleration packets lost.' %(accLost))
+        print('  %d incomplete acceleration packages lost.' %(accLost))
     elif accLost == 1:
-        print('  An acceleration packet losts.')
+        print('  1 acceleration package losts.')
     else:
-        print('  No fhs packets lost.') 
+        print('  No fhs packages lost.') 
     if accIncomplete > 1:
-        print('  %d acceleration packets have been autocompleted.' %(accIncomplete))
+        print('  %d incomplete acceleration packages have been set to 0.' %(accIncomplete))
     elif accIncomplete == 1:
-        print('  An acceleration packet has been autocompleted.')
+        print('  1 incomplete acceleration package has been set to 0.')
     else:
-        print('  All the acceleration packets are complete.') 
+        print('  All the acceleration packages are complete.') 
     #Autocorrelation
-    dCorr = DutyDataCorr(dFhs)
+    #dCorr = DutyDataCorr(dFhs)
+    print('fhr len: %d; fhs len: %d; acc len: %d' %(dFhr.size, dFhs.size, dAcc.size))
     
-    
-    
-    #DutyPlotAll(dFhs, dAcc)
+    SystemExit(0)
+    DutyPlotAll(dFhr, dFhs, dAcc)
     
     #f = open("a.txt", "w")
     #for i in range(len(dFhs)):
