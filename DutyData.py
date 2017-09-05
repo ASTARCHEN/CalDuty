@@ -3,6 +3,7 @@
 
 import numpy as np
 import os
+import DutyCfg
 
 ##
 # DutydFhsDecode: Decode fhs data
@@ -44,13 +45,15 @@ def DutyDataDecode(fnFhs, fnFhr):
     if(not (fExistFhs and fExistFhr)):
         return (np.array([], dtype=np.short), np.array([], dtype=np.short), np.array([], dtype=np.short), np.array([[], [], []], dtype=np.short))
     # Load files
+    [fsFhs, fsAccUnit, nAccChn] = DutyCfg.loadnum(['fsFhs', 'fsAccUnit', 'nAccChn'])
+    fsAcc = fsAccUnit*nAccChn
     dFhr = np.loadtxt(fnFhr, dtype=np.short)
     dRaw = np.loadtxt(fnFhs, dtype=np.short)    
     lenFhr = dFhr.size
     lenRaw = dRaw.size
     # Allocate memory for output arrays  
-    fsAcc = 75
-    fsFhs = 500
+    #fsAcc = 75
+    #fsFhs = 500
     lenFhs = lenFhr*fsFhs
     lenAcc = lenFhr*fsAcc
     dFhs = np.zeros(lenFhs, dtype=np.short)
@@ -68,12 +71,12 @@ def DutyDataDecode(fnFhs, fnFhr):
         while (tmpInd < lenRaw) and (dRaw[tmpInd] < 10000):
             tmpInd += 1
         #tmpInd -= 1
-        if tmpInd >= 500:
-            while tmpInd >= 500:
-                tmpInd -= 500
+        if tmpInd >= fsFhs:
+            while tmpInd >= fsFhs:
+                tmpInd -= fsFhs
             pStart = tmpInd
         else:
-            pStart = tmpInd + 75
+            pStart = tmpInd + fsAcc
     else:
         tmpInd = 1
         while (tmpInd < lenRaw) and (dRaw[tmpInd] > 10000):
@@ -159,7 +162,6 @@ def DutyDataDecode(fnFhs, fnFhr):
     infoDec[1] = accLost
     infoDec[2] = fhsIncomplete
     infoDec[3] = accIncomplete
-    print(dAcc.size)
     return (dFhr, dFhs, dAcc, infoDec)
 
 ##

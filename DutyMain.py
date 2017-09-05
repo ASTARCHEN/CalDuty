@@ -4,12 +4,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from DutyData import *
-from DutyPlot import *
+import DutyPlot
+import DutyCfg
 
 if __name__ == '__main__':
 
-    fnFhs = './y00005.txt'
-    fnFhr = './x00005.txt'
+    # Load configuration file
+    [fnFhs, fnFhr] = DutyCfg.loadstr(['fnFhs', 'fnFhr'])
     # Decoding and relevant infomation
     (dFhr, dFhs, dAcc, infoDec) = DutyDataDecode(fnFhs, fnFhr)
     [fhsLost, accLost, fhsIncomplete, accIncomplete] = infoDec
@@ -32,7 +33,7 @@ if __name__ == '__main__':
     else:
         print('  All the fhs packages are complete.')    
     if accLost > 1:
-        print('  %d incomplete acceleration packages lost.' %(accLost))
+        print('  %d acceleration packages lost.' %(accLost))
     elif accLost == 1:
         print('  1 acceleration package losts.')
     else:
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     print('fhr len: %d; fhs len: %d; acc len: %d' %(dFhr.size, dFhs.size, dAcc.size))
     
     SystemExit(0)
-    DutyPlotAll(dFhr, dFhs, dAcc)
+    DutyPlot.plot(dFhr, dFhs, dAcc)
     
     #f = open("a.txt", "w")
     #for i in range(len(dFhs)):
