@@ -6,26 +6,26 @@ import os
 import DutyCfg
 
 ##
-# DutydFhsDecode: Decode fhs data
+# decfhs: Decode fhs data
 # dRaw: fhs data with coding form
 # (return): fhs data with decoding form
-def DutyDataFhsDecode(dRaw):
+def decfhs(dRaw):
     lenRaw = len(dRaw)
     for i in range(lenRaw):
         dRaw[i] = dRaw[i] - 2048
     return dRaw
 ##
-# DutyAccerationDecode: Decode acceleration data
+# decacc: Decode acceleration data
 # dRaw: acceleration data with coding form
 # (return): acceleration data with decoding form
-def DutyDataAccelerationDecode(dRaw):
+def decacc(dRaw):
     lenRaw = len(dRaw)
     for i in range(lenRaw):
         dRaw[i] = dRaw[i] - 18432
     return dRaw
     
 ##
-# DutyGetData: Obtain fhs(Fetal heart signal) and acceleration signal from the file of fnFhs, as well as fhr(Fetal heart rate) from fnFhr
+# decode: Obtain fhs(Fetal heart signal) and acceleration signal from the file of fnFhs, as well as fhr(Fetal heart rate) from fnFhr
 # input:
 #   fnFhs: filename of fetal heart signal
 #   fnFhr: filename of fetal heart rate
@@ -38,19 +38,45 @@ def DutyDataAccelerationDecode(dRaw):
 #     accLost: number of lost acceleration packages
 #     fhsIncomplete: number of incomplete fhs packages
 #     accIncomplete: number of incomplete acceleration packages
-def DutyDataDecode(fnFhs, fnFhr):
+def decode(fnFhs, fnFhr):
     # Check files
     fExistFhs = os.path.exists(fnFhs)
     fExistFhr = os.path.exists(fnFhr)
     if(not (fExistFhs and fExistFhr)):
-        return (np.array([], dtype=np.short), np.array([], dtype=np.short), np.array([], dtype=np.short), np.array([[], [], []], dtype=np.short))
+        return (np.array([], dtype=np.short), np.array([], dtype=np.short), np.array([], dtype=np.short), np.array([], dtype=np.short), np.array([[], [], []], dtype=np.short))
     # Load files
-    [fsFhs, fsAccUnit, nAccChn] = DutyCfg.loadnum(['fsFhs', 'fsAccUnit', 'nAccChn'])
+    [fsFhs, fsAccUnit, nAccChn, ec] = DutyCfg.loadnum(['fsFhs', 'fsAccUnit', 'nAccChn', 'ec'])
     fsAcc = fsAccUnit*nAccChn
     dFhr = np.loadtxt(fnFhr, dtype=np.short)
     dRaw = np.loadtxt(fnFhs, dtype=np.short)    
     lenFhr = dFhr.size
     lenRaw = dRaw.size
+    # Seperate error codes from fhr
+    dErrorTmp = np.zeros([2, lenFhr], dtype = np.short)
+    nError = 0
+    for i in range(lenFhr):
+        if(dFhr[i] >= ec[0]):
+            dErrorTmp[0][nError] = i
+            dErrorTmp[1][nError] = dFhr[i]
+            dFhr[i] = 0
+            nError += 1
+    if (nError > 0):
+        dError = np.zeros([2, nError], dtype=np.short)
+        dError[0] = dErrorTmp[0][0:nError]
+        dError[1] = dErrorTmp[1][0:nError]
+        lenec = len(ec)
+        statError = np.zeros([2, lenec+1], dtype = np.short)
+        statError[0][0:lenec] = ec
+        for i in range(nError):
+            ind = np.argwhere(ec == dError[1][i])
+            if(ind.size > 0):
+                statError[1][ind] += 1
+            else:
+                statError[1][lenec] += 1
+    else:
+        dError = np.array([])
+        statError = np.array([])
+    
     # Allocate memory for output arrays  
     #fsAcc = 75
     #fsFhs = 500
@@ -121,7 +147,7 @@ def DutyDataDecode(fnFhs, fnFhr):
                 fhsIncomplete += 1
                 curEnd = curStart+ind
                 tmpRaw.setfield(2048, dtype=np.short)   #2048----decode----->0 
-            tmpFhs = DutyDataFhsDecode(tmpRaw)
+            tmpFhs = decfhs(tmpRaw)
             curStart = curEnd
             # Copy decoding result to dFhs
             dFhs[indFhs0:indFhs1] = tmpRaw           
@@ -146,7 +172,7 @@ def DutyDataDecode(fnFhs, fnFhr):
                 accIncomplete += 1
                 curEnd = curStart+ind
                 tmpRaw.setfield(18432, dtype=np.short)  #18432----decode----->0           
-            tmpAcc = DutyDataAccelerationDecode(tmpRaw)
+            tmpAcc = decacc(tmpRaw)
             cntAcc = cntFhs
             curStart = curEnd
             # Copy decoding result to dAcc
@@ -162,7 +188,7 @@ def DutyDataDecode(fnFhs, fnFhr):
     infoDec[1] = accLost
     infoDec[2] = fhsIncomplete
     infoDec[3] = accIncomplete
-    return (dFhr, dFhs, dAcc, infoDec)
+    return (dFhr, dError, dFhs, dAcc, statError,infoDec)
 
 ##
 # DutyDataCorr: Autocorrelation of fhs signal

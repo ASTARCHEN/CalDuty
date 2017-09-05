@@ -7,13 +7,8 @@ import DutyCfg
 
 # DutyPlotFhs: Plot fhs data
 # dFhr: fhs data
-def plotfhr(dFhr, idFig):
+def plotfhr(dFhr, dError, idFig):
     lenFhr = len(dFhr)
-    dError = np.zeros(lenFhr, dtype = np.short)
-    for i in range(lenFhr):
-        if(dFhr[i] > 240):
-            dError[i] = dFhr[i]
-            dFhr[i] = 0
     f = plt.figure(idFig)
     p1 = f.add_subplot(2, 1, 1)
     line1, = p1.plot(dFhr, label='fetal heart rate curve')
@@ -22,7 +17,7 @@ def plotfhr(dFhr, idFig):
     p1.grid(True)
     p1.legend(handles=[line1])
     p2 = f.add_subplot(2, 1, 2)
-    line2, = p2.plot(dError, 'r*', label='error codes')
+    line2, = p2.plot(dError[0], dError[1], 'r*', label='error codes')
     p2.axis([0, lenFhr, 239, 256])
     p2.yaxis.set_ticks(np.arange(240, 256, 2))
     p2.grid(True)
@@ -80,8 +75,8 @@ def plotacc(dAcc, idFig):
     return
 
 
-def plot(dFhr, dFhs, dAcc):
-    plotfhr(dFhr, 1)
+def plot(dFhr, dFhs, dAcc, dError):
+    plotfhr(dFhr, dError,1)
     plotfhs(dFhs, 2)
     plotacc(dAcc, 3)
     plt.show()

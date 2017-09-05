@@ -3,7 +3,7 @@
     
 import numpy as np
 import matplotlib.pyplot as plt
-from DutyData import *
+import DutyData
 import DutyPlot
 import DutyCfg
 
@@ -12,14 +12,25 @@ if __name__ == '__main__':
     # Load configuration file
     [fnFhs, fnFhr] = DutyCfg.loadstr(['fnFhs', 'fnFhr'])
     # Decoding and relevant infomation
-    (dFhr, dFhs, dAcc, infoDec) = DutyDataDecode(fnFhs, fnFhr)
+    (dFhr, dError, dFhs, dAcc, statError,infoDec) = DutyData.decode(fnFhs, fnFhr)
     [fhsLost, accLost, fhsIncomplete, accIncomplete] = infoDec
     t = dFhr.size
     if(t <= 0):
         print('Nonexistent or empty files.')
         SystemExit(0)
     print('Decoding done:')
-    print('  The test lasted for %ds.' %(t))
+    print('  The test lasts for %ds.' %(t))
+    if(statError.size > 0):
+        print('  Error codes:')
+        print('       code           times')
+        for i in range(statError[0].size-1):
+            if(statError[1][i] > 0):
+                print('        %d             %d' %(statError[0][i], statError[1][i]))
+        if(statError[1][statError[0].size-1] > 0):
+            print('     undefined          %d' %(statError[1][statError[0].size-1]))
+        print('       total            %d' %(statError[1].sum()))
+    else:
+        print('  No error code appears')
     if fhsLost > 1:
         print('  %d fhs packages lost.' %(accLost))
     elif fhsLost == 1:
@@ -49,7 +60,7 @@ if __name__ == '__main__':
     print('fhr len: %d; fhs len: %d; acc len: %d' %(dFhr.size, dFhs.size, dAcc.size))
     
     SystemExit(0)
-    DutyPlot.plot(dFhr, dFhs, dAcc)
+    DutyPlot.plot(dFhr, dFhs, dAcc, dError)
     
     #f = open("a.txt", "w")
     #for i in range(len(dFhs)):
