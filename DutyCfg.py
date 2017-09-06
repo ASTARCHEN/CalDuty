@@ -59,5 +59,11 @@ def loadstr(inStr):
     cf.readfp(fid)    
     for i in range(lenStr):
         tmp = cf.get('str', inStr[i])
-        outPara.append(tmp)
+        tmp2 = tmp.split(',')
+        len2 = len(tmp2)
+        if(len2 > 1):                
+            fTmp = tmp2
+        else:
+            fTmp = tmp
+        outPara.append(fTmp)
     return(outPara)
