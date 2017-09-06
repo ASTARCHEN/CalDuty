@@ -4,6 +4,7 @@
 import numpy as np
 import os
 import DutyCfg
+from scipy import signal as sg
 
 ##
 # decfhs: Decode fhs data
@@ -33,6 +34,7 @@ def decacc(dRaw):
 #   dFhr: array of fhr
 #   dFhs: array of fhs signal, fs = 500Hz, 1 channel
 #   dAcc: array of acceleration signal, fs = 25Hz, 3 channels
+#   dError, statError: error code info
 #   infoDec, including:
 #     fhsLost: number of lost fhs packages
 #     accLost: number of lost acceleration packages
@@ -191,13 +193,61 @@ def decode(fnFhs, fnFhr):
     return (dFhr, dError, dFhs, dAcc, statError,infoDec)
 
 ##
-# DutyDataCorr: Autocorrelation of fhs signal
+# freq: Frequency analysis of fhs singal
 # dFhs: fhs signal, fs = 500Hz, 1 channel
-# dAcc: autocorrelation result
-#def DutyDataCorr(dFhs):
-    #lenFhs = len(dFhs)
-    #fsFhs = 500
-    #duration = lenFhs/fsFhs
-    #for t in range(duration):
+# (return): frequency spectrum
+def freq(dFhs):
+    [fsFhs] = DutyCfg.loadnum(['fsFhs'])
+    lenFhs = dFhs.size
+    nSec = lenFhs//fsFhs
+    nMinute = nSec//60
+    freqFhs = np.zeros([nMinute, fsFhs//2+1])
+    for i in range(nMinute):
+        sumFreq = np.zeros(fsFhs//2+1)
+        sumFreq -= 1.0
+        for j in range(60):
+            sP = ((i*60)+j)*fsFhs
+            eP = sP+fsFhs
+            tmpFreq = np.abs(np.fft.rfft(dFhs[sP:eP]))
+            sumFreq += tmpFreq
+        freqFhs[i] = sumFreq/60
+    return freqFhs
+
+##
+# teager: Teager's Energy Operator
+def teager(inData):
+    lenData = inData.size
+    outData = np.zeros(lenData)
+    outData[1:lenData-1] = inData[1:lenData-1]**2 - inData[0:lenData-2]*inData[2:]
+    outData[0] = outData[1]
+    outData[lenData-1] = outData[lenData-2] 
+    return outData
     
-    #return
+##
+# multiband: 3 steps: (1)3-channel filter, (2)get Teager's energy for each channel, (3)lowpass filter for each channel
+# dFhs: fhs signal, fs = 500Hz, 1 channel
+# (return): filtered signals, 3 channels
+def multiband(dFhs):
+    [a1, b1, a2, b2, a3, b3, a0, b0] = DutyCfg.loadnum(['a1', 'b1', 'a2', 'b2', 'a3', 'b3', 'a0', 'b0'])
+    exlFhs = sg.filtfilt(b1, a1, dFhs)
+    lFhs = sg.filtfilt(b2, a2, dFhs)
+    hFhs = sg.filtfilt(b3, a3, dFhs)
+    exlTgr = teager(exlFhs)
+    lTgr = teager(lFhs)
+    hTgr = teager(hFhs)
+    exlEnergy = sg.filtfilt(b0, a0, exlTgr)
+    lEnergy = sg.filtfilt(b0, a0, lTgr)
+    hEnergy = sg.filtfilt(b0, a0, hTgr)    
+    return (exlEnergy[0::2], lEnergy[0::2], hEnergy[0::2])
+
+##
+# corr: Energy signals correlation
+# inEnergy: Energy signals, fs = 250Hz, 1 channel
+# (return): correlation results
+def corr(inEnergy):
+    [fsFhs, numCorr] = DutyCfg.loadnum(['fsFhs', 'numCorr'])
+    fsEnergy = fsFhs//2
+    t = inEnergy.size//fsEnergy
+    #for i in range(3, t):
+                
+    return []

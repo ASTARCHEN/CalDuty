@@ -1,5 +1,6 @@
 # This is a python prject, which is an attempt to acheive the functions of WallE
 # Development Enviroment: Python 3.5.3, GCC 6.3.0, Linux debian9 4.9.0-3-amd64
+# Make sure that SCIPY, NUMPY, MATPLOTLIB and CONFIGPARSER have been installed
     
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,7 +33,7 @@ if __name__ == '__main__':
                 tmpTimes = statError[1][i]
                 [tmpIndex] = np.argwhere(ec == tmpCode)
                 tmpMeaning = ecm[tmpIndex[0]]
-                print('       %d        %d       %s' %(tmpCode, tmpIndex, tmpMeaning))
+                print('       %d        %d       %s' %(tmpCode, tmpTimes, tmpMeaning))
         if(statError[1][statError[0].size-1] > 0):
             print('    undefined     %d      undefined' %(statError[1][statError[0].size-1]))
     else:
@@ -65,14 +66,21 @@ if __name__ == '__main__':
         print('    1 incomplete acceleration package has been set to 0.')
     else:
         print('    All the acceleration packages are complete.') 
-    #Autocorrelation
-    #dCorr = DutyDataCorr(dFhs)
-    
+    # Autocorrelation
+    freqFhs = DutyData.freq(dFhs)
+    (exlEnergy, lEnergy, hEnergy) = DutyData.multiband(dFhs)
+    exlCorr = DutyData.corr(exlEnergy)
+    lCorr = DutyData.corr(lEnergy)
+    hCorr = DutyData.corr(hEnergy)
+
+      
+    DutyPlot.plot(dFhr, dFhs, dAcc, dError, freqFhs, exlEnergy, lEnergy, hEnergy)
     SystemExit(0)
-    DutyPlot.plot(dFhr, dFhs, dAcc, dError)
-    
     #f = open("a.txt", "w")
     #for i in range(len(dFhs)):
         #f.write("%d\n" %(dFhs[i]))
     #f.close()
+    #print(exlEnergy.size)
+    #print(lEnergy.size)
+    #print(hEnergy.size)
 
