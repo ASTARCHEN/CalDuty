@@ -122,11 +122,16 @@ def plotenergy(exlEnergy, lEnergy, hEnergy, idFig):
     p3.legend(handles=[line3])    
     return
 
-def plot(dFhr, dFhs, dAcc, dError, dFreq, exlEnergy, lEnergy, hEnergy):
+def plotcorr(lCorr, idFig):
+    f = plt.figure(idFig) 
+    plt.pcolor(lCorr.transpose(), shading='flat')
+
+def plot(dFhr, dFhs, dAcc, dError, dFreq, exlEnergy, lEnergy, hEnergy, lCorr):
     plotfhr(dFhr, dError,1)
-    plotfhs(dFhs, 2)
-    plotacc(dAcc, 3)
-    plotfreq(dFreq, 4)
-    plotenergy(exlEnergy, lEnergy, hEnergy, 5)
+    #plotfhs(dFhs, 2)
+    #plotacc(dAcc, 3)
+    #plotfreq(dFreq, 4)
+    #plotenergy(exlEnergy, lEnergy, hEnergy, 5)
+    plotcorr(lCorr, 6)
     plt.show()
     return

@@ -241,13 +241,42 @@ def multiband(dFhs):
     return (exlEnergy[0::2], lEnergy[0::2], hEnergy[0::2])
 
 ##
-# corr: Energy signals correlation
+# xcorr: auto correlation
+# inData: 4s signals
+# fs: sampling frequency
+# minFhr, maxFhr: range of fhr
+def xcorr(inData, fs, minFhr, maxFhr):
+    nCorr = 500
+    sP = int(60.0/maxFhr*fs)
+    eP = int(60.0/minFhr*fs)+1    
+    outData = np.zeros(maxFhr-minFhr)
+    tmpData = np.zeros(eP)
+    baseData = inData[0:nCorr]
+    #zeroData = (baseData**2).sum()/100000000.0
+    #if(zeroData <= 0):
+        #zeroData = 1.0/100000000.0
+    zeroData = 1.0
+    mapIndex = 60*fs//np.arange(minFhr, maxFhr)
+    # calculate each one
+    for i in range(sP, eP):
+        tmpData[i] = (baseData*inData[i:i+nCorr]).sum()/zeroData
+        print(tmpData[i])
+    # map to fhr
+    for i in range(0, maxFhr-minFhr-1):
+        outData[i] = tmpData[mapIndex[i]];
+    outData[maxFhr-minFhr-1] = tmpData[mapIndex[maxFhr-minFhr-1]]    
+    return outData
+##
+# autocorr: Energy signals correlation
 # inEnergy: Energy signals, fs = 250Hz, 1 channel
 # (return): correlation results
-def corr(inEnergy):
-    [fsFhs, numCorr] = DutyCfg.loadnum(['fsFhs', 'numCorr'])
+def autocorr(inEnergy):
+    [fsFhs, minFhr, maxFhr] = DutyCfg.loadnum(['fsFhs', 'minFhr', 'maxFhr'])
     fsEnergy = fsFhs//2
-    t = inEnergy.size//fsEnergy
-    #for i in range(3, t):
-                
-    return []
+    tEnergy = inEnergy.size//fsEnergy
+    corrEnergy = np.zeros([tEnergy, maxFhr-minFhr])
+    for i in range(3, tEnergy):
+        sP = (i-3)*fsEnergy
+        eP = sP+4*fsEnergy
+        corrEnergy[i] = xcorr(inEnergy[sP:eP], fsEnergy, minFhr, maxFhr)   
+    return corrEnergy

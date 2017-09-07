@@ -33,9 +33,9 @@ if __name__ == '__main__':
                 tmpTimes = statError[1][i]
                 [tmpIndex] = np.argwhere(ec == tmpCode)
                 tmpMeaning = ecm[tmpIndex[0]]
-                print('       %d        %d       %s' %(tmpCode, tmpTimes, tmpMeaning))
+                print('       %d       %03d       %s' %(tmpCode, tmpTimes, tmpMeaning))
         if(statError[1][statError[0].size-1] > 0):
-            print('    undefined     %d      undefined' %(statError[1][statError[0].size-1]))
+            print('    undefined    %03d      undefined' %(statError[1][statError[0].size-1]))
     else:
         print('  No error code appears')
     # Fhs info
@@ -69,12 +69,15 @@ if __name__ == '__main__':
     # Autocorrelation
     freqFhs = DutyData.freq(dFhs)
     (exlEnergy, lEnergy, hEnergy) = DutyData.multiband(dFhs)
-    exlCorr = DutyData.corr(exlEnergy)
-    lCorr = DutyData.corr(lEnergy)
-    hCorr = DutyData.corr(hEnergy)
+    #exlCorr = DutyData.autocorr(exlEnergy)
+    lCorr = DutyData.autocorr(hEnergy)
+    #hCorr = DutyData.autocorr(hEnergy)
+    print(lCorr.size)
+    print(len(lCorr))
+    
 
       
-    DutyPlot.plot(dFhr, dFhs, dAcc, dError, freqFhs, exlEnergy, lEnergy, hEnergy)
+    DutyPlot.plot(dFhr, dFhs, dAcc, dError, freqFhs, exlEnergy, lEnergy, hEnergy, lCorr)
     SystemExit(0)
     #f = open("a.txt", "w")
     #for i in range(len(dFhs)):
