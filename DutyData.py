@@ -220,7 +220,10 @@ def teager(inData):
     outData = np.zeros(lenData)
     outData[1:lenData-1] = inData[1:lenData-1]**2 - inData[0:lenData-2]*inData[2:]
     outData[0] = outData[1]
-    outData[lenData-1] = outData[lenData-2] 
+    outData[lenData-1] = outData[lenData-2]
+    for i in range(outData.size):
+        if(outData[i] < 0):
+            outData[i] = 0
     return outData
     
 ##
@@ -237,8 +240,31 @@ def multiband(dFhs):
     hTgr = teager(hFhs)
     exlEnergy = sg.filtfilt(b0, a0, exlTgr)
     lEnergy = sg.filtfilt(b0, a0, lTgr)
-    hEnergy = sg.filtfilt(b0, a0, hTgr)    
+    hEnergy = sg.filtfilt(b0, a0, hTgr)
+    for i in range(exlEnergy.size):
+        if(exlEnergy[i] < 0):
+            exlEnergy[i] = 0
+        if(lEnergy[i] < 0):
+            lEnergy[i] = 0
+        if(hEnergy[i] < 0):
+            hEnergy[i] = 0
     return (exlEnergy[0::2], lEnergy[0::2], hEnergy[0::2])
+
+def binaryzation(inData):
+    lenData = inData.size
+    peakData = np.zeros(lenData)
+    numPeak = 0
+    for i in range(1, lenData-1):
+        if(inData[i]>inData[i-1] and inData[i]>inData[i+1]):
+            peakData[numPeak] = inData[i]
+            numPeak += 1
+    peakData2 = np.sort(peakData)
+    thd = peakData2[lenData-numPeak//2]
+    outData = np.zeros(lenData, dtype = np.int32)
+    for i in range(lenData):
+        if(inData[i] > thd):
+            outData[i] = 1
+    return outData
 
 ##
 # xcorr: auto correlation
@@ -247,24 +273,22 @@ def multiband(dFhs):
 # minFhr, maxFhr: range of fhr
 def xcorr(inData, fs, minFhr, maxFhr):
     nCorr = 500
-    sP = int(60.0/maxFhr*fs)
-    eP = int(60.0/minFhr*fs)+1    
+    sP = int(fs*60.0/maxFhr)
+    eP = int(fs*60.0/minFhr)+1
+    binData = binaryzation(np.array(inData))
     outData = np.zeros(maxFhr-minFhr)
     tmpData = np.zeros(eP)
     baseData = inData[0:nCorr]
-    #zeroData = (baseData**2).sum()/100000000.0
-    #if(zeroData <= 0):
-        #zeroData = 1.0/100000000.0
-    zeroData = 1.0
     mapIndex = 60*fs//np.arange(minFhr, maxFhr)
     # calculate each one
     for i in range(sP, eP):
-        tmpData[i] = (baseData*inData[i:i+nCorr]).sum()/zeroData
-        print(tmpData[i])
+        tmpData[i] = (baseData*inData[i:i+nCorr]).sum()
     # map to fhr
     for i in range(0, maxFhr-minFhr-1):
-        outData[i] = tmpData[mapIndex[i]];
-    outData[maxFhr-minFhr-1] = tmpData[mapIndex[maxFhr-minFhr-1]]    
+        outData[i] = max(tmpData[mapIndex[i]:mapIndex[i+1]-1:-1])
+    outData[maxFhr-minFhr-1] = tmpData[mapIndex[maxFhr-minFhr-1]]
+    paraNormal = max(outData);
+    outData = outData/paraNormal
     return outData
 ##
 # autocorr: Energy signals correlation
@@ -274,9 +298,9 @@ def autocorr(inEnergy):
     [fsFhs, minFhr, maxFhr] = DutyCfg.loadnum(['fsFhs', 'minFhr', 'maxFhr'])
     fsEnergy = fsFhs//2
     tEnergy = inEnergy.size//fsEnergy
-    corrEnergy = np.zeros([tEnergy, maxFhr-minFhr])
+    corrEnergy = np.ones([tEnergy, maxFhr-minFhr])
     for i in range(3, tEnergy):
         sP = (i-3)*fsEnergy
         eP = sP+4*fsEnergy
-        corrEnergy[i] = xcorr(inEnergy[sP:eP], fsEnergy, minFhr, maxFhr)   
+        corrEnergy[i] = xcorr(inEnergy[sP:eP], fsEnergy, minFhr, maxFhr)
     return corrEnergy

@@ -69,21 +69,8 @@ if __name__ == '__main__':
     # Autocorrelation
     freqFhs = DutyData.freq(dFhs)
     (exlEnergy, lEnergy, hEnergy) = DutyData.multiband(dFhs)
-    #exlCorr = DutyData.autocorr(exlEnergy)
-    lCorr = DutyData.autocorr(hEnergy)
-    #hCorr = DutyData.autocorr(hEnergy)
-    print(lCorr.size)
-    print(len(lCorr))
-    
-
-      
-    DutyPlot.plot(dFhr, dFhs, dAcc, dError, freqFhs, exlEnergy, lEnergy, hEnergy, lCorr)
+    exlCorr = DutyData.autocorr(exlEnergy)
+    lCorr = DutyData.autocorr(lEnergy)
+    hCorr = DutyData.autocorr(hEnergy)      
+    DutyPlot.plot(dFhr, dFhs, dAcc, dError, freqFhs, exlEnergy, lEnergy, hEnergy, exlCorr, lCorr, hCorr)
     SystemExit(0)
-    #f = open("a.txt", "w")
-    #for i in range(len(dFhs)):
-        #f.write("%d\n" %(dFhs[i]))
-    #f.close()
-    #print(exlEnergy.size)
-    #print(lEnergy.size)
-    #print(hEnergy.size)
-
